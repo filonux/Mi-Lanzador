@@ -11,7 +11,8 @@ Es una interfaz gráfica para armar "acciones": secuencias de pasos que abren pr
 Todo — interfaz y lógica — vive en un único archivo `.sh`; tus datos (acciones, ajustes, iconos) se guardan aparte, en tu carpeta de configuración (ver «Dónde guarda las cosas» más abajo).
 
 
-https://github.com/user-attachments/assets/0a9fc318-7ed6-4318-9515-ba30f973c63c
+[![Demo](assets/demo-thumbnail.png)](assets/demo.mp4)
+
 <img width="977" height="727" alt="1menu-milanzador" src="https://github.com/user-attachments/assets/0cc06854-9f74-47d1-9103-905bb160d5e9" />
 <img width="973" height="722" alt="2nueva-accion-milanzador" src="https://github.com/user-attachments/assets/544d7fa1-5973-4d0f-9c16-08d71948ec1b" />
 <img width="973" height="719" alt="3ajustes-milanzador" src="https://github.com/user-attachments/assets/d05ddb0b-ae02-4b30-b266-5a6e75428a1d" />
