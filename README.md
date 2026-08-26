@@ -68,6 +68,10 @@ Con eso basta. La primera vez:
 
 Después de eso, ábrelo desde el menú o el icono del Escritorio, como cualquier otra app.
 
+## Instalar y lanzar Mi Lanzador con Scriptya (opcional)
+
+[Scriptya](https://github.com/filonux/Scriptya) es un lanzador de scripts: organiza los tuyos en un menú con búsqueda y puede convertir cualquiera de ellos en una app de escritorio con su propio icono, sin escribir un `.desktop` a mano. Puedes añadir unos metadatos opcionales desde Scriptya para tenerlo organizado con el nombre, descripción, cambiar su icono, etc.
+
 ## Dónde guarda las cosas
 
 | Qué | Dónde |
