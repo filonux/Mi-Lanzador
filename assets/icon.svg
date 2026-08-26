@@ -1,0 +1,46 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="8%" y1="2%" x2="96%" y2="100%">
+      <stop offset="0%" stop-color="#6c5ce7"/>
+      <stop offset="100%" stop-color="#8e7cff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="72%" cy="24%" r="55%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- fondo: cuadrado redondeado a pantalla casi completa -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#glow)"/>
+
+  <!-- grupo del cohete, dibujado "de pie" y rotado en diagonal -->
+  <g transform="translate(256 268) scale(1.18) translate(-256 -268) rotate(35 256 268)">
+    <!-- puntos de estela (por detras, se dibujan primero) -->
+    <circle cx="256" cy="452" r="11" fill="#ffffff" opacity="0.85"/>
+    <circle cx="242" cy="480" r="7.5" fill="#ffffff" opacity="0.55"/>
+    <circle cx="233" cy="502" r="4.5" fill="#ffffff" opacity="0.32"/>
+
+    <!-- llama exterior -->
+    <path d="M 224 330 C 206 366 214 400 256 436 C 298 400 306 366 288 330 Z" fill="#FFA726"/>
+    <!-- llama interior -->
+    <path d="M 238 330 C 228 356 232 380 256 406 C 280 380 284 356 274 330 Z" fill="#FFDE7A"/>
+
+    <!-- aleta izquierda -->
+    <path d="M 208 296 L 148 384 L 208 340 Z" fill="#E3DDFF"/>
+    <!-- aleta derecha -->
+    <path d="M 304 296 L 364 384 L 304 340 Z" fill="#E3DDFF"/>
+
+    <!-- cuerpo + morro -->
+    <path d="M 256 88
+             Q 303 152 305 192
+             L 305 334
+             L 207 334
+             L 207 192
+             Q 209 152 256 88 Z" fill="#ffffff"/>
+
+    <!-- ojo de buey -->
+    <circle cx="256" cy="246" r="24" fill="#4C3FBF"/>
+    <circle cx="256" cy="246" r="17" fill="#C7D2FE"/>
+  </g>
+</svg>
