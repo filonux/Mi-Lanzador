@@ -8,6 +8,8 @@ Creador de accesos directos automatizados para Linux Mint 22.3 (Cinnamon, sesió
 
 Es una interfaz gráfica para armar "acciones": secuencias de pasos que abren programas, documentos, páginas web o comandos, colocan ventanas, simulan clics y pulsan teclas, encadenados y en orden — como una macro de AutoHotkey, pero con xdotool/wmctrl por debajo. Cualquier acción se convierte en un acceso directo de un clic (Escritorio y/o menú de aplicaciones) que ejecuta todos sus pasos sin abrir la ventana de la app.
 
+En la práctica, cualquier rutina que hoy hagas a mano —abrir tus apps de trabajo y colocarlas en su sitio, dejar todo listo para grabar, rellenar el mismo formulario de siempre— se queda guardada como un solo icono que la repite exactamente igual, todas las veces.
+
 Todo — interfaz y lógica — vive en un único archivo `.sh`; tus datos (acciones, ajustes, iconos) se guardan aparte, en tu carpeta de configuración (ver «Dónde guarda las cosas» más abajo).
 
 ## Vista previa
@@ -34,6 +36,19 @@ https://github.com/user-attachments/assets/8e310451-187f-46ca-92ac-e612d38a0f05
 - **Clic** en coordenadas X,Y absolutas — a mano o con una cuenta atrás de 3s para colocar el cursor mientras la app se aparta sola. Eliges botón (izquierdo, central o derecho) y si quieres doble clic. Puede activar antes una ventana concreta.
 - **Tecla o combinación**, y **escribir texto** — la combinación se puede capturar pulsándola, o escribirla a mano (ej. `Alt+F10`); ambas se aplican a la última ventana abierta por la acción, a la ventana de un paso anterior por su alias, o a la que encuentres buscando por título.
 
+## Ejemplos de acciones que puedes armar
+
+Los pasos se encadenan libremente dentro de una misma acción, así que el límite real lo pone tu imaginación. Algunos ejemplos para que veas el alcance:
+
+- **Arranque de la jornada** — abre el correo, el chat de trabajo y el calendario, cada uno colocado en un cuarto de pantalla, listos de un vistazo nada más sentarte.
+- **Entorno de desarrollo** — el editor a un lado, un terminal con el servidor en marcha al otro (paso Ejecutar comando) y el navegador apuntando a `localhost`, cada cual en su sitio.
+- **Modo presentación** — las diapositivas a pantalla completa y, antes, un par de pasos que minimizan el correo y el chat para que no salte ningún aviso en mitad de la charla.
+- **Formulario repetitivo** — abre la página, hace clic en el primer campo, escribe el texto, salta al siguiente con Tab... la misma tarea de cada semana, reducida a un solo clic.
+- **Cierre de jornada** — el inverso del arranque: minimiza o cierra todo lo del trabajo con un solo icono al terminar el día.
+- **Control en segundo plano** — activa por título una ventana que ya estaba abierta (el reproductor de música, por ejemplo) y le envía una tecla, sin traerla al frente ni interrumpir lo que estás haciendo.
+
+Y como cada acción guardada tiene su propio icono, la siguiente vez ni siquiera hace falta abrir Mi Lanzador: con un doble clic en el Escritorio (o el atajo de teclado que le asignes — ver «Ejecutar una acción sin abrir la ventana» más abajo) ya está todo en marcha.
+
 ## Otras funciones
 
 - **Icono por acción** — puedes poner una imagen propia (PNG, SVG, JPG, ICO o XPM) para cada acción; si no pones ninguna, coge un icono automático según el primer paso.
@@ -46,12 +61,29 @@ Al crear un acceso directo eliges Escritorio, menú de aplicaciones, o ambos. Si
 
 ## Requisitos
 
-- Linux Mint 22.3, Cinnamon, sesión **X11** (ver el apartado de Wayland más abajo).
+- Linux Mint 22.3, Cinnamon, sesión **X11** — en Wayland la app abre igual, pero pierde la colocación de ventanas, los clics y el teclado automatizado (detalle en «Sobre Wayland» más abajo).
 - Python 3 (ya viene con el sistema).
 - GTK3 para Python: `python3-gi gir1.2-gtk-3.0 python3-gi-cairo gir1.2-notify-0.7`
 - `xdotool` y `wmctrl`, solo si vas a colocar ventanas, hacer clic, enviar teclas o escribir texto (incluida la colocación integrada dentro de abrir programa/documento/web/comando).
+- Interfaz en español — no incluye todavía ninguna capa de traducción (`gettext` u otra).
 
 El script detecta si faltan las dos últimas (GTK3 y xdotool/wmctrl) y se ofrece a instalarlas con `pkexec`, pidiendo confirmación explícita antes de tocar nada. Si dices que no, o no hay `pkexec` disponible, te deja el comando exacto para hacerlo tú mismo. Para xdotool/wmctrl puedes además reintentarlo cuando quieras desde Ajustes → «Instalar ahora»; GTK3 no tiene ese botón — sin él la interfaz no llega a abrirse, así que tampoco hay Ajustes al que entrar — basta con volver a ejecutar el script una vez lo hayas instalado a mano. Python 3 es el único requisito que el script no ofrece instalar por ti: si llegara a faltar (no debería, en una instalación normal de Mint), directamente te muestra el comando.
+
+## Compatibilidad con otras distribuciones
+
+Mi Lanzador se desarrolla y se prueba sobre Linux Mint 22.3 (Cinnamon, X11), y es la única combinación totalmente soportada. Dicho esto, el script no impone ningún candado por distribución: no comprueba en ningún punto qué sistema es, así que en cualquier sesión Linux/X11 con GTK3 debería comportarse igual. De hecho, varias partes ya son genéricas por diseño — detecta terminales instaladas (`gnome-terminal`, `mate-terminal`, `xfce4-terminal`, `tilix`, `terminator`, `konsole`, `xterm`...), navegadores (Firefox/Chrome/Chromium/Brave, con sus variantes de nombre de paquete), y coloca ventanas usando propiedades EWMH estándar que implementan la mayoría de gestores de ventanas X11 (Xfwm4 de XFCE, Marco de MATE, KWin en X11, Mutter en Xorg...), aunque solo se ha ajustado y probado a fondo contra Muffin, el de Cinnamon.
+
+La única pieza realmente atada a Mint/Ubuntu/Debian es la instalación automática de dependencias, que usa `apt`. En una distribución con otro gestor de paquetes esa instalación automática no va a funcionar, pero si instalas tú mismo los paquetes equivalentes antes de lanzarlo, el resto de la aplicación debería arrancar sin más:
+
+| Distro | Gestor | Paquetes aproximados |
+|---|---|---|
+| Fedora / RHEL | `dnf` | `python3-gobject gtk3 python3-cairo libnotify xdotool wmctrl` |
+| openSUSE | `zypper` | `python3-gobject typelib-1_0-Gtk-3_0 typelib-1_0-Notify-0_7 xdotool wmctrl` |
+| Arch / Manjaro | `pacman` | `python-gobject gtk3 python-cairo libnotify xdotool wmctrl` |
+
+(Nombres orientativos — compruébalos con el buscador de paquetes de tu distro, pueden variar entre versiones.)
+
+Como en Wayland (ver más abajo) la colocación de ventana, el clic y el teclado no funcionan en ningún escritorio, esa limitación aplica igual sin importar la distribución.
 
 ## Instalación
 
