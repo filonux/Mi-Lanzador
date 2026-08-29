@@ -135,4 +135,8 @@ Un único `.sh`: la parte de bash hace la auto-instalación, comprueba/instala d
 
 ## Licencia
 
-GPLv3 — © 2026 Filonux. Ver `LICENSE`.
+Consulta el archivo [LICENSE](LICENSE) de este repositorio.
+
+---
+
+Hecho por **[Filonux](https://github.com/filonux)**.
