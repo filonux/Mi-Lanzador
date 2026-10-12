@@ -1,142 +1,165 @@
-<a href="assets/icon.svg"><img src="assets/icon.svg" alt="Icono de Mi Lanzador" width="140"></a>
+[Leer en español](README.es.md)
+
+<a href="assets/icon.svg"><img src="assets/icon.svg" alt="Mi Lanzador icon" width="140"></a>
 
 # Mi Lanzador
 
-Creador de accesos directos automatizados para Linux Mint 22.3 (Cinnamon, sesión X11).
+Automated shortcut creator for Linux Mint 22.3 (Cinnamon, X11 session).
 
-[![Bash 4+](https://img.shields.io/badge/bash-%3E%3D4.0-4EAA25?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/) [![Linux Mint 22.3 Cinnamon](https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?logo=linuxmint&logoColor=white)](https://linuxmint.com/) [![Licencia GPLv3](https://img.shields.io/badge/licencia-GPLv3-blue)](LICENSE)
+[![Bash 4+](https://img.shields.io/badge/bash-%3E%3D4.0-4EAA25?logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/) [![Linux Mint 22.3 Cinnamon](https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?logo=linuxmint&logoColor=white)](https://linuxmint.com/) [![GPLv3 License](https://img.shields.io/badge/license-GPLv3-blue)](LICENSE.txt)
 
-Es una interfaz gráfica para armar "acciones": secuencias de pasos que abren programas, documentos, páginas web o comandos, colocan ventanas, simulan clics y pulsan teclas, encadenados y en orden — como una macro de AutoHotkey, pero con xdotool/wmctrl por debajo. Cualquier acción se convierte en un acceso directo de un clic (Escritorio y/o menú de aplicaciones) que ejecuta todos sus pasos sin abrir la ventana de la app.
+Mi Lanzador is a graphical interface for building “actions”: sequences of steps that open programs, documents, websites or commands, place windows, simulate clicks and press keys, chained and executed in order — like an AutoHotkey macro, but using xdotool/wmctrl underneath. Any action can be turned into a one-click shortcut (Desktop and/or applications menu) that executes every step without opening the app window.
 
-En la práctica, cualquier rutina que hoy hagas a mano —abrir tus apps de trabajo y colocarlas en su sitio, dejar todo listo para grabar, rellenar el mismo formulario de siempre— se queda guardada como un solo icono que la repite exactamente igual, todas las veces.
+In practice, any routine you currently do by hand — opening your work apps and putting them where they belong, getting everything ready to record, filling in the same form every time — can be saved as a single icon that repeats it exactly the same way, every time.
 
-Todo — interfaz y lógica — vive en un único archivo `.sh`; tus datos (acciones, ajustes, iconos) se guardan aparte, en tu carpeta de configuración (ver «Dónde guarda las cosas» más abajo).
+Everything — interface and logic — lives in a single `.sh` file; your data (actions, settings, icons) is stored separately in your configuration folder (see “Where it stores things” below).
 
-## Vista previa
+## What's new in version 2.1.0
 
-[![Demo](assets/demo-thumbnail.png)](assets/demo.mp4)
+- **Spanish and English interface**, chosen from the system language and switchable in one click (the `L` button). It used to be Spanish-only. See “Language”.
+- **Your data is not lost.** Everything the app saves (actions, settings, language, shortcuts, icons) is written atomically: a failure halfway through a save never leaves half-written files. If `acciones.json` or `ajustes.json` is damaged, it is set aside as `<name>.corrupt-<date>` (never overwritten) and the app opens with empty data, telling you so.
+- **Copes with hand-edited files.** It accepts the BOM that Windows editors add, ignores fields of the wrong type and repairs empty, duplicated or unusable-as-a-filename ids, instead of failing at startup.
+- **More reliable runs.** Launching an action while another is still running no longer erases its log or warnings. A step aimed by alias at a window that has since closed is skipped with a warning, instead of acting on a different one. A click as the first step waits until Mi Lanzador has minimized, so it lands on the window underneath, and it no longer stalls for about 15 seconds when the pointer is already on the click point. And user text containing line breaks cannot inject commands or fake warnings in the generated script.
+- **More stable shortcuts and window.** Renaming an action replaces its shortcut (no duplicate) and, if the new one cannot be written, keeps the old one. Installing xdotool/wmctrl no longer freezes the window while apt works, and closing a half-filled form asks for confirmation.
+- **Over 450 automated tests** against real GTK3 on Xvfb, plus ShellCheck and pyflakes on every change (see “Tests”).
 
+## Preview
+
+[Demo video](assets/demo.mp4)
 
 https://github.com/user-attachments/assets/8e310451-187f-46ca-92ac-e612d38a0f05
 
+<img width="977" height="719" alt="Mi Lanzador - My shortcuts tab" src="assets/screenshots/1-menu-mi-lanzador-en.png" />
+<img width="975" height="728" alt="Mi Lanzador - New action tab with the Add step dialog" src="assets/screenshots/2-newaction-en.png" />
+<img width="979" height="721" alt="Mi Lanzador - Settings tab" src="assets/screenshots/3-mi-lanzador-settings-en.png" />
 
-<img width="977" height="727" alt="1menu-milanzador" src="https://github.com/user-attachments/assets/0cc06854-9f74-47d1-9103-905bb160d5e9" />
-<img width="973" height="722" alt="2nueva-accion-milanzador" src="https://github.com/user-attachments/assets/544d7fa1-5973-4d0f-9c16-08d71948ec1b" />
-<img width="973" height="719" alt="3ajustes-milanzador" src="https://github.com/user-attachments/assets/d05ddb0b-ae02-4b30-b266-5a6e75428a1d" />
-<img width="712" height="657" alt="4añadir-paso-milanzador" src="https://github.com/user-attachments/assets/6d813325-ce87-4914-bb5a-f1b0d583998a" />
+## What each step type does
 
+- **Open program** — a catalogue of what you have installed (system, Snap, Flatpak, desktop shortcuts) or a manual path/command, with arguments when needed.
+- **Open document or file** — choose it with the usual file browser; it opens with the system default application (just like a double-click from the file manager) or, if you prefer, by forcing a specific installed application.
+- **Open website** — in a tab, in a real new window or “as an app” (without an address bar; Chrome/Chromium/Brave only), with the option to use the system default browser, automatically detected among Firefox, Chrome, Chromium and Brave.
+- **Run a command** and **wait** a few seconds. The command opens in a real terminal and stays there, showing its output, until you press Enter.
+- **Place window** — maximize, restore normal size, half screen (left, right, top or bottom), screen quarters, centered (80% of the screen), custom size/position as screen percentages, minimize, close. It is integrated into the step that opens the program/document/web/command, and there is also a standalone one for repositioning a window that was already open. With multiple monitors, the percentage is calculated against the monitor where the window is located, not the entire virtual desktop.
+- **Click** at absolute X,Y screen coordinates — manually or with a 3-second countdown that lets you place the cursor while the app gets out of the way. Choose the mouse button (left, middle or right) and whether it is a double click. It can activate a specific window first. Two click steps in a row on the same point are sent a fraction of a second apart, which applications may read as a double click: add a wait step between them to keep them separate.
+- **Send a key or key combination**, and **type text** — the combination can be captured by pressing it, or entered manually (e.g. `Alt+F10`); both steps can target the last window opened by the action, a previous step by its alias, or a window found by title search.
 
-## Qué hace cada tipo de paso
+## Examples of actions you can build
 
-- **Abrir programa** — catálogo con lo que tengas instalado (sistema, Snap, Flatpak, accesos de escritorio) o ruta/comando manual, con argumentos si hace falta.
-- **Abrir documento o archivo** — se elige con el explorador de archivos de siempre; se abre con la aplicación predeterminada del sistema (como un doble clic desde el gestor de archivos) o, si lo prefieres, forzando una aplicación instalada concreta.
-- **Abrir sitio web** — en pestaña, en ventana nueva de verdad o "como app" (sin barra de direcciones; solo Chrome/Chromium/Brave), con opción de usar el navegador predeterminado del sistema, que detecta automáticamente entre Firefox, Chrome, Chromium y Brave.
-- **Ejecutar comando** y **esperar** unos segundos. El comando se abre en una terminal de verdad y se queda ahí, mostrando el resultado, hasta que pulsas Intro.
-- **Colocar ventana** — maximizar, restaurar tamaño normal, mitad de pantalla (izquierda, derecha, arriba o abajo), cuartos de pantalla, centrada (80% de la pantalla), tamaño/posición a medida en % de pantalla, minimizar, cerrar. Va integrado en el paso que abre el programa/documento/web/comando, y también existe suelto para reposicionar una ventana que ya estaba abierta. Con varias pantallas, calcula el porcentaje sobre el monitor donde esté la ventana, no sobre todo el escritorio virtual.
-- **Clic** en coordenadas X,Y absolutas — a mano o con una cuenta atrás de 3s para colocar el cursor mientras la app se aparta sola. Eliges botón (izquierdo, central o derecho) y si quieres doble clic. Puede activar antes una ventana concreta.
-- **Tecla o combinación**, y **escribir texto** — la combinación se puede capturar pulsándola, o escribirla a mano (ej. `Alt+F10`); ambas se aplican a la última ventana abierta por la acción, a la ventana de un paso anterior por su alias, o a la que encuentres buscando por título.
+The steps can be chained freely within the same action, so the real limit is your imagination. A few examples to show the scope:
 
-## Ejemplos de acciones que puedes armar
+- **Start of the workday** — open your mail, work chat and calendar, each placed in a quarter of the screen, ready at a glance as soon as you sit down.
+- **Development environment** — the editor on one side, a terminal with the server running on the other (Run command step), and the browser pointing to `localhost`, each in its place.
+- **Presentation mode** — the slides in full screen and, beforehand, a couple of steps that minimize email and chat so that no notification pops up in the middle of the talk.
+- **Repetitive form** — open the page, click the first field, type the text, move to the next with Tab... the same weekly task reduced to one click.
+- **End of the workday** — the reverse of startup: minimize or close everything work-related with one icon when you finish the day.
+- **Controlling a window that is already open** — it finds the window by title (a music player, for example), activates it and sends it a key (pause, say), without you having to go and look for it.
 
-Los pasos se encadenan libremente dentro de una misma acción, así que el límite real lo pone tu imaginación. Algunos ejemplos para que veas el alcance:
+And because each saved action has its own icon, the next time you do not even need to open Mi Lanzador: a double click on the Desktop (or the keyboard shortcut you assign to it — see “Run an action without opening the window” below) starts everything.
 
-- **Arranque de la jornada** — abre el correo, el chat de trabajo y el calendario, cada uno colocado en un cuarto de pantalla, listos de un vistazo nada más sentarte.
-- **Entorno de desarrollo** — el editor a un lado, un terminal con el servidor en marcha al otro (paso Ejecutar comando) y el navegador apuntando a `localhost`, cada cual en su sitio.
-- **Modo presentación** — las diapositivas a pantalla completa y, antes, un par de pasos que minimizan el correo y el chat para que no salte ningún aviso en mitad de la charla.
-- **Formulario repetitivo** — abre la página, hace clic en el primer campo, escribe el texto, salta al siguiente con Tab... la misma tarea de cada semana, reducida a un solo clic.
-- **Cierre de jornada** — el inverso del arranque: minimiza o cierra todo lo del trabajo con un solo icono al terminar el día.
-- **Control en segundo plano** — activa por título una ventana que ya estaba abierta (el reproductor de música, por ejemplo) y le envía una tecla, sin traerla al frente ni interrumpir lo que estás haciendo.
+## Other features
 
-Y como cada acción guardada tiene su propio icono, la siguiente vez ni siquiera hace falta abrir Mi Lanzador: con un doble clic en el Escritorio (o el atajo de teclado que le asignes — ver «Ejecutar una acción sin abrir la ventana» más abajo) ya está todo en marcha.
+- **Per-action icon** — you can use your own image (PNG, SVG, JPG, ICO or XPM) for each action; if you do not choose one, an automatic icon is selected based on the first step.
+- **Test this step now** — while creating or editing a step, you can run just that step to check what it does, without saving the action or touching the other steps.
+- **View generated script** — for each saved action you can view the actual bash script that is executed, step by step.
+- **Desktop notifications** — it reports when an action starts, and again if something goes wrong; this can be disabled in Settings.
+- **Settings** — default browser for “Website”, automatically create a Desktop shortcut when saving a new action (otherwise it asks you every time), notifications, direct access to the configuration folder, and a button to (re)install xdotool/wmctrl whenever you want.
+- **Bilingual interface** — Spanish/English, detected automatically from the system locale (English if it is not Spanish). See “Language” below.
 
-## Otras funciones
+When creating a shortcut you choose Desktop, applications menu, or both. If Cinnamon asks you to “trust” or “allow execution” when you double-click it for the first time, that is normal — accept it once and it will not ask again.
 
-- **Icono por acción** — puedes poner una imagen propia (PNG, SVG, JPG, ICO o XPM) para cada acción; si no pones ninguna, coge un icono automático según el primer paso.
-- **Probar este paso ahora** — al crear o editar un paso, puedes ejecutarlo suelto para comprobar que hace lo que quieres, sin guardar la acción ni tocar los demás pasos.
-- **Ver script generado** — para cada acción guardada puedes ver el script bash real que se ejecuta, paso a paso.
-- **Notificaciones de escritorio** — avisa al lanzar una acción, y de nuevo si algo no ha ido bien; se puede desactivar en Ajustes.
-- **Ajustes** — navegador predeterminado para "Sitio web", crear el acceso directo en el Escritorio automáticamente al guardar una acción nueva (si no, te lo pregunta cada vez), notificaciones, acceso directo a la carpeta de configuración, y un botón para (re)instalar xdotool/wmctrl cuando quieras.
+## Language
 
-Al crear un acceso directo eliges Escritorio, menú de aplicaciones, o ambos. Si al hacer doble clic Cinnamon te pide "confiar" o "permitir ejecución" la primera vez, es normal — acéptalo una vez y no se vuelve a preguntar.
+Mi Lanzador uses the system language only as the initial default. A saved choice in `~/.config/mi-lanzador/idioma` takes priority, so changing the desktop locale later does not unexpectedly change the interface. The `L` button (or the `L` key when the focus is not in a text field or a list) switches between `es` and `en` and saves the choice.
 
-## Requisitos
+For diagnostics or automated tests, `mi-lanzador.sh --print-language` prints the language that will be used. The `MI_LANZADOR_LANG=es` or `MI_LANZADOR_LANG=en` environment variable can be used to force a language for a single launch without changing the saved preference.
 
-- Linux Mint 22.3, Cinnamon, sesión **X11** — en Wayland la app abre igual, pero pierde la colocación de ventanas, los clics y el teclado automatizado (detalle en «Sobre Wayland» más abajo).
-- Python 3 (ya viene con el sistema).
-- GTK3 para Python: `python3-gi gir1.2-gtk-3.0 python3-gi-cairo gir1.2-notify-0.7`
-- `xdotool` y `wmctrl`, solo si vas a colocar ventanas, hacer clic, enviar teclas o escribir texto (incluida la colocación integrada dentro de abrir programa/documento/web/comando).
-- Interfaz en español — no incluye todavía ninguna capa de traducción (`gettext` u otra).
+## Requirements
 
-El script detecta si faltan las dos últimas (GTK3 y xdotool/wmctrl) y se ofrece a instalarlas con `pkexec`, pidiendo confirmación explícita antes de tocar nada. Si dices que no, o no hay `pkexec` disponible, te deja el comando exacto para hacerlo tú mismo. Para xdotool/wmctrl puedes además reintentarlo cuando quieras desde Ajustes → «Instalar ahora»; GTK3 no tiene ese botón — sin él la interfaz no llega a abrirse, así que tampoco hay Ajustes al que entrar — basta con volver a ejecutar el script una vez lo hayas instalado a mano. Python 3 es el único requisito que el script no ofrece instalar por ti: si llegara a faltar (no debería, en una instalación normal de Mint), directamente te muestra el comando.
+- Linux Mint 22.3, Cinnamon, **X11** session — on Wayland the app opens normally, but window placement, clicks and automated keyboard input are unavailable (details in “About Wayland” below).
+- Python 3 (already included with the system).
+- GTK3 for Python: `python3-gi gir1.2-gtk-3.0 python3-gi-cairo gir1.2-notify-0.7`
+- `xdotool` and `wmctrl`, only if you are going to place windows, click, send keys or type text (including integrated placement inside open program/document/web/command).
 
-## Compatibilidad con otras distribuciones
+The script detects whether GTK3 and xdotool/wmctrl are missing and offers to install them with `pkexec`, asking for explicit confirmation before touching anything. If you say no, or `pkexec` is unavailable, it gives you the exact command so you can do it yourself. For xdotool/wmctrl you can also retry whenever you like from Settings → “Install now”; GTK3 has no such button — without it the interface cannot start, so there is no Settings screen to enter — simply run the script again after installing it manually. Python 3 is the only requirement the script does not offer to install for you: if it were missing (which should not happen on a normal Mint installation), it shows the command directly.
 
-Mi Lanzador se desarrolla y se prueba sobre Linux Mint 22.3 (Cinnamon, X11), y es la única combinación totalmente soportada. Dicho esto, el script no impone ningún candado por distribución: no comprueba en ningún punto qué sistema es, así que en cualquier sesión Linux/X11 con GTK3 debería comportarse igual. De hecho, varias partes ya son genéricas por diseño — detecta terminales instaladas (`gnome-terminal`, `mate-terminal`, `xfce4-terminal`, `tilix`, `terminator`, `konsole`, `xterm`...), navegadores (Firefox/Chrome/Chromium/Brave, con sus variantes de nombre de paquete), y coloca ventanas usando propiedades EWMH estándar que implementan la mayoría de gestores de ventanas X11 (Xfwm4 de XFCE, Marco de MATE, KWin en X11, Mutter en Xorg...), aunque solo se ha ajustado y probado a fondo contra Muffin, el de Cinnamon.
+## Compatibility with other distributions
 
-La única pieza realmente atada a Mint/Ubuntu/Debian es la instalación automática de dependencias, que usa `apt`. En una distribución con otro gestor de paquetes esa instalación automática no va a funcionar, pero si instalas tú mismo los paquetes equivalentes antes de lanzarlo, el resto de la aplicación debería arrancar sin más:
+Mi Lanzador is developed and tested on Linux Mint 22.3 (Cinnamon, X11), and that is the only fully supported combination. That said, the script does not impose a distribution lock: it never checks which distribution you are running, so on any Linux/X11 session with GTK3 it should behave the same. Several parts are intentionally generic — it detects installed terminals (`gnome-terminal`, `mate-terminal`, `xfce4-terminal`, `tilix`, `terminator`, `konsole`, `xterm`...), browsers (Firefox/Chrome/Chromium/Brave, with package-name variants), and places windows using standard EWMH properties implemented by most X11 window managers (XFCE Xfwm4, MATE Marco, KWin on X11, Mutter on Xorg...), although it has only been tuned and tested thoroughly against Muffin, the Cinnamon window manager.
 
-| Distro | Gestor | Paquetes aproximados |
+The only part tied to Mint/Ubuntu/Debian is automatic dependency installation, which uses `apt`. On a distribution with a different package manager that automatic installation will not work, but if you install the equivalent packages yourself before launching it, the rest of the application should start normally:
+
+| Distro | Package manager | Approximate packages |
 |---|---|---|
 | Fedora / RHEL | `dnf` | `python3-gobject gtk3 python3-cairo libnotify xdotool wmctrl` |
 | openSUSE | `zypper` | `python3-gobject typelib-1_0-Gtk-3_0 typelib-1_0-Notify-0_7 xdotool wmctrl` |
 | Arch / Manjaro | `pacman` | `python-gobject gtk3 python-cairo libnotify xdotool wmctrl` |
 
-(Nombres orientativos — compruébalos con el buscador de paquetes de tu distro, pueden variar entre versiones.)
+(Package names are indicative — check your distribution's package search; they can vary between versions.)
 
-Como en Wayland (ver más abajo) la colocación de ventana, el clic y el teclado no funcionan en ningún escritorio, esa limitación aplica igual sin importar la distribución.
+As with Wayland (see below), window placement, clicks and keyboard input do not work there on any desktop, so that limitation is independent of the distribution.
 
-## Instalación
+## Installation
+
+Download [`script/mi-lanzador.sh`](script/mi-lanzador.sh) (with GitHub's download button) and, from the folder where you saved it, run:
 
 ```bash
 chmod +x mi-lanzador.sh
 ./mi-lanzador.sh
 ```
 
-Con eso basta. La primera vez:
+That is all. The first time:
 
-1. Se copia a `~/.local/share/mi-lanzador/mi-lanzador.sh` — esa pasa a ser la copia "instalada"; el `.sh` que descargaste ya no hace falta.
-2. Crea su lanzador en el menú de aplicaciones y una copia en tu Escritorio.
-3. Comprueba dependencias y pregunta antes de instalar nada que falte.
+1. It copies itself to `~/.local/share/mi-lanzador/mi-lanzador.sh` — that becomes the “installed” copy; the `.sh` you downloaded is no longer needed.
+2. It installs its icon, creates its launcher in the applications menu and leaves a copy on your Desktop.
+3. It checks dependencies and asks before installing anything that is missing.
 
-Después de eso, ábrelo desde el menú o el icono del Escritorio, como cualquier otra app.
+After that, open it from the menu or Desktop icon like any other app.
 
-## Instalar y lanzar Mi Lanzador con Scriptya (opcional)
+## Install and launch Mi Lanzador with Scriptya (optional)
 
-[Scriptya](https://github.com/filonux/Scriptya) es un lanzador de scripts: organiza los tuyos en un menú con búsqueda y puede convertir cualquiera de ellos en una app de escritorio con su propio icono, sin escribir un `.desktop` a mano. Puedes añadir unos metadatos opcionales desde Scriptya para tenerlo organizado con el nombre, descripción, cambiar su icono, etc.
+[Scriptya](https://github.com/filonux/Scriptya) is a script launcher: it organizes your scripts in a searchable menu and can turn any of them into a desktop app with its own icon, without writing a `.desktop` file by hand. You can add optional metadata from Scriptya to keep it organized with a name and description, change its icon, etc.
 
-## Dónde guarda las cosas
+## Where it stores things
 
-| Qué | Dónde |
+| What | Where |
 |---|---|
-| Acciones | `~/.config/mi-lanzador/acciones.json` |
-| Ajustes | `~/.config/mi-lanzador/ajustes.json` |
-| Iconos personalizados | `~/.config/mi-lanzador/iconos/` |
-| Registro de la última ejecución | `~/.config/mi-lanzador/ultima_ejecucion.log` |
-| Log de errores | `~/.config/mi-lanzador/error.log` |
-| Script instalado | `~/.local/share/mi-lanzador/mi-lanzador.sh` |
+| Actions | `~/.config/mi-lanzador/acciones.json` |
+| Settings | `~/.config/mi-lanzador/ajustes.json` |
+| Custom icons | `~/.config/mi-lanzador/iconos/` |
+| Language preference | `~/.config/mi-lanzador/idioma` |
+| Last-run log | `~/.config/mi-lanzador/ultima_ejecucion.log` |
+| Error log | `~/.config/mi-lanzador/error.log` |
+| Installed script | `~/.local/share/mi-lanzador/mi-lanzador.sh` |
+| Launcher icon | `~/.local/share/icons/hicolor/scalable/apps/mi-lanzador.svg` |
 
-Cualquier error inesperado se registra en el log de errores y además se muestra en un aviso: no falla en silencio, porque normalmente se abre con doble clic, sin terminal donde ver nada. El registro de la última ejecución, en cambio, es la salida de la última acción que has lanzado (avisos incluidos) — útil para ver por qué un paso concreto no hizo lo que esperabas.
+Any unexpected error is recorded in the error log and also shown in a notification: it does not fail silently, because the app is normally opened with a double click, with no terminal where you can see anything. The last-run log, by contrast, is the output of the last action you launched (warnings included) — useful to see why a particular step did not do what you expected.
 
-## Sobre Wayland
+If `acciones.json` or `ajustes.json` cannot be read, it is kept in the same folder as `<name>.corrupt-<date>`, the app opens with empty data and tells you so. The error log is rotated to `error.log.1` once it exceeds 256 KB.
 
-Si tu sesión de Cinnamon es Wayland nativo, abrir programas/webs/comandos funciona igual, pero colocar ventanas, hacer clic, enviar teclas y escribir texto **no van a funcionar**, aunque tengas xdotool y wmctrl instalados — es una limitación de esas herramientas, no del script. Se detecta sola y avisa una vez al día. Para tener todo, elige la sesión "Cinnamon" (X11) en la pantalla de inicio de sesión, no la que dice "Cinnamon (Wayland)".
+## About Wayland
 
-## Ejecutar una acción sin abrir la ventana
+If your Cinnamon session is native Wayland, opening programs/websites/commands works normally, but window placement, clicking, sending keys and typing text **will not work**, even if xdotool and wmctrl are installed — this is a limitation of those tools, not of the script. It detects this automatically and warns once a day. To have all features, choose the “Cinnamon” (X11) session on the login screen, not the one labelled “Cinnamon (Wayland)”.
+
+## Run an action without opening the window
 
 ```bash
-mi-lanzador.sh --ejecutar <id_de_la_accion>
+mi-lanzador.sh --ejecutar <action_id>
 ```
 
-Corre esa acción de principio a fin sin mostrar ninguna ventana. Es lo que usan por dentro los accesos directos `.desktop` que genera la app, y sirve igual de bien para asignarle un atajo de teclado propio desde Cinnamon.
+It runs that action from start to finish without showing any window. This is what the `.desktop` shortcuts generated by the app use internally, and it works just as well for assigning a keyboard shortcut to it from Cinnamon. The `id` is the action's `id` field in `acciones.json`; it also appears at the end of the `Exec=` line of its shortcut.
 
-## Por dentro
+## Under the hood
 
-Un único `.sh`: la parte de bash hace la auto-instalación, comprueba/instala dependencias y avisa de Wayland; al final hace `exec python3` sobre un heredoc con toda la interfaz en PyGObject (GTK3). Sin build, sin paquetes propios que instalar — el archivo es el programa.
+A single `.sh`: the bash part handles self-installation, checks/installs dependencies and warns about Wayland; at the end it uses `exec python3` on a heredoc containing the whole PyGObject (GTK3) interface. No build step, no custom packages to install — the file is the program.
 
-## Licencia
+## Tests
 
-Consulta el archivo [LICENSE](LICENSE) de este repositorio.
+`bash tests/test_project.sh` checks the script's syntax and runs over 450 tests that start the real GTK3 interface on a virtual Xvfb with Openbox; the dependencies it needs are listed in [CONTRIBUTING.md](.github/CONTRIBUTING.md). GitHub Actions runs the same command on every pull request and on every push to the default branch, together with ShellCheck and pyflakes on the embedded Python.
+
+## License
+
+See the [LICENSE.txt](LICENSE.txt) file in this repository.
 
 ---
 
-Hecho por **[Filonux](https://github.com/filonux)**.
+Made by **[Filonux](https://github.com/filonux)**.
