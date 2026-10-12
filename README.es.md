@@ -1,4 +1,4 @@
-[Read this README in English](README.md)
+[🇬🇧 Read this README in English](README.md)
 
 <a href="assets/icon.svg"><img src="assets/icon.svg" alt="Icono de Mi Lanzador" width="140"></a>
 
