@@ -27,7 +27,7 @@ Todo — interfaz y lógica — vive en un único archivo `.sh`; tus datos (acci
 
 [Vídeo de demostración](assets/demo.mp4)
 
-https://github.com/user-attachments/assets/8e310451-187f-46ca-92ac-e612d38a0f05
+https://github.com/user-attachments/assets/39f252bd-b087-494a-becf-dae433429457
 
 <img width="976" height="721" alt="Mi Lanzador - pestaña Mis accesos" src="assets/screenshots/1-menu-mi-lanzador-es.png" />
 <img width="976" height="721" alt="Mi Lanzador - pestaña Nueva acción con el diálogo Añadir paso" src="assets/screenshots/2-newaction-es.png" />
