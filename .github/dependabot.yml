@@ -1,0 +1,13 @@
+# The actions in the workflows are pinned by commit SHA (with the version in a comment).
+# Dependabot updates both at once; without it, those pins would go stale.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      github-actions:
+        patterns: ['*']
+    commit-message:
+      prefix: ci

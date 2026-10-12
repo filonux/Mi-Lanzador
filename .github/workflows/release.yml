@@ -1,0 +1,54 @@
+name: Release
+
+# Usage:  git tag v2.1.0 && git push origin v2.1.0
+# Any tag that starts with "v" + a digit works (v2.1, v2.1.0...). With a hyphen (v2.1.0-rc1) it is published as a pre-release.
+on:
+  push:
+    tags: ['v[0-9]*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    name: CI
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    name: Publish release
+    needs: ci
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write   # the only job with write permission: it creates the release
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The .sha256 uses the relative name: users verify it with `sha256sum -c mi-lanzador.sh.sha256`.
+      - name: Build assets
+        run: |
+          mkdir dist
+          cp script/mi-lanzador.sh dist/
+          cd dist
+          sha256sum mi-lanzador.sh > mi-lanzador.sh.sha256
+          sha256sum -c mi-lanzador.sh.sha256
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}   # passed through env, never interpolated into the script (injection)
+          REPO: ${{ github.repository }}
+        run: |
+          flags=()
+          [[ "$TAG" == *-* ]] && flags+=(--prerelease)
+          gh release create "$TAG" dist/mi-lanzador.sh dist/mi-lanzador.sh.sha256 \
+            --repo "$REPO" --verify-tag --generate-notes --title "Mi Lanzador $TAG" "${flags[@]}"

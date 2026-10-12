@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches: [Filonux-Box]   # default branch of this repo (not "main")
+  pull_request:
+  workflow_dispatch:
+  workflow_call:   # reused by release.yml: nothing is published if this fails
+
+permissions:
+  contents: read
+
+# On PRs, a new push cancels the previous run; on pushes to Filonux-Box and on tags nothing is ever cancelled.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+defaults:
+  run:
+    shell: bash   # with an explicit `shell: bash`, GitHub adds -eo pipefail
+
+env:
+  DEBIAN_FRONTEND: noninteractive
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools
+        run: |
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends shellcheck python3-pyflakes
+
+      - name: ShellCheck
+        run: git ls-files -z '*.sh' | xargs -0 shellcheck
+
+      - name: Bash syntax
+        run: bash -n script/mi-lanzador.sh
+
+      # There are two embedded Python blocks: PYCONFIRM (install dialog) and PYEOF (the app). Each one is
+      # extracted to its own file keeping the line numbers of the .sh (the other lines are left blank):
+      # an error at "mi-lanzador.PYEOF.py:4000" is line 4000 of script/mi-lanzador.sh.
+      # If a delimiter were renamed, the extraction would come out empty and pass falsely: hence the check.
+      - name: Embedded Python (py_compile + pyflakes)
+        run: |
+          for d in PYCONFIRM PYEOF; do
+            py="$RUNNER_TEMP/mi-lanzador.$d.py"
+            awk -v d="$d" 'p && $0 == d { p = 0; print ""; next }
+                           p { print; next }
+                           $0 ~ ("<<." d ".$") { p = 1 }
+                           { print "" }' script/mi-lanzador.sh > "$py"
+            grep -q '[^[:space:]]' "$py" || { echo "::error::Python block $d not found in script/mi-lanzador.sh"; exit 1; }
+            python3 -m py_compile "$py"
+            python3 -m pyflakes "$py"
+          done
+
+  test:
+    name: Tests (GTK3 real + Xvfb)
+    runs-on: ubuntu-24.04   # same base as Linux Mint 22.x
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Do NOT use actions/setup-python: PyGObject (python3-gi) only exists for the system Python.
+      # imagemagick + fonts-dejavu-core: tests/test_aesthetic.py measures text with them; without them it
+      # estimates `len*8`. They are always installed so the job does not depend on what the runner image ships.
+      # xterm + dbus-daemon: tests/test_real_terminals.py runs the "command" step in every real terminal that is
+      # installed and skips the missing ones: without xterm it would skip all of them and CI would check nothing;
+      # with a terminal but without dbus-daemon (require_tools demands it) it would fail.
+      # desktop-file-utils + shellcheck: without them 48 tests (desktop-file-validate on the Exec= of the .desktop
+      # files) and 4 (shellcheck on the generated script) are skipped without CI failing. shellcheck already ships in
+      # the runner image, but, as in the Lint job, it is not relied on.
+      - name: Install system dependencies
+        run: |
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
+            xvfb openbox x11-utils x11-apps xdotool wmctrl xdg-user-dirs \
+            python3-gi python3-gi-cairo gir1.2-gtk-3.0 gir1.2-notify-0.7 \
+            libgtk-3-bin librsvg2-common python3-pytest \
+            imagemagick fonts-dejavu-core xterm dbus-daemon desktop-file-utils shellcheck
+
+      - name: Verify toolchain
+        run: |
+          python3 --version
+          python3 -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk; print('GTK %d.%d.%d' % (Gtk.get_major_version(), Gtk.get_minor_version(), Gtk.get_micro_version()))"
+          xdotool --version
+          dpkg-query -W -f='${Package} ${Version}\n' wmctrl xvfb openbox imagemagick xterm dbus-daemon desktop-file-utils shellcheck
+
+      # Same command that CONTRIBUTING.md asks for: syntax, py_compile and the whole suite.
+      # The suite starts its own Xvfb + Openbox: xvfb-run is not needed.
+      # -rs lists every skipped test and its reason in the log (terminals and Mint-Y themes the runner does not ship).
+      - name: Run test suite
+        env:
+          PYTEST_ADDOPTS: -rs
+        run: bash tests/test_project.sh
