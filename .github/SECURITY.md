@@ -1,8 +1,7 @@
-# Política de seguridad
+# Security policy
 
-Mi Lanzador es un script de uso local: si encuentras un problema real o fallo de seguridad, repórtalo en privado en vez de abrir un issue público. Pero puedes hacerlo público igualmente, eso está a tu elección
+Mi Lanzador is a local-use script: if you find a real problem or security flaw, please report it privately instead of opening a public issue. You can also report it publicly if you prefer; that is up to you.
 
-## Cómo reportarlo
+## How to report it
 
-Escribe a **filonux@proton.me** con una descripción del problema y, si puedes, los pasos para reproducirlo.
-
+Write to **filonux@proton.me** with a description of the problem and, if you can, the steps to reproduce it.
