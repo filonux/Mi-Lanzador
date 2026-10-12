@@ -23,16 +23,16 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Desktop (please complete the following information):**
- - OS: [e.g. iOS]
- - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
+**Environment (please complete the following information):**
+ - Distro and version: [e.g. Linux Mint 22.3]
+ - Session type: [X11 or Wayland; `echo $XDG_SESSION_TYPE` shows it]
+ - Desktop environment: [e.g. Cinnamon]
+ - `zenity` version: [`zenity --version`, or "not installed"]
 
-**Smartphone (please complete the following information):**
- - Device: [e.g. iPhone6]
- - OS: [e.g. iOS8.1]
- - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
+**Logs**
+Paste the relevant lines, or attach the files:
+ - `~/.config/mi-lanzador/error.log`
+ - `~/.config/mi-lanzador/ultima_ejecucion.log`
 
 **Additional context**
 Add any other context about the problem here.
