@@ -27,7 +27,7 @@ Everything — interface and logic — lives in a single `.sh` file; your data (
 
 [Demo video](assets/demo.mp4)
 
-https://github.com/user-attachments/assets/8e310451-187f-46ca-92ac-e612d38a0f05
+https://github.com/user-attachments/assets/adb98192-66cd-4f52-b696-88cb4aec8b03
 
 <img width="977" height="719" alt="Mi Lanzador - My shortcuts tab" src="assets/screenshots/1-menu-mi-lanzador-en.png" />
 <img width="975" height="728" alt="Mi Lanzador - New action tab with the Add step dialog" src="assets/screenshots/2-newaction-en.png" />
